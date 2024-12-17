@@ -1,0 +1,122 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+// Structure to represent an edge
+struct Edge {
+    int u, v, weight;
+    Edge(int u, int v, int weight) : u(u), v(v), weight(weight) {}
+};
+
+// Disjoint Set (Union-Find) data structure
+class DisjointSet {
+private:
+    vector<int> parent, rank;
+
+public:
+    DisjointSet(int n) {
+        parent.resize(n);
+        rank.resize(n, 0);
+        for (int i = 0; i < n; ++i)
+            parent[i] = i;
+    }
+
+    int find(int u) {
+        if (parent[u] != u)
+            parent[u] = find(parent[u]);  // Path compression
+        return parent[u];
+    }
+
+    void unionSets(int u, int v) {
+        int rootU = find(u);
+        int rootV = find(v);
+
+        if (rootU != rootV) {
+            // Union by rank
+            if (rank[rootU] > rank[rootV])
+                parent[rootV] = rootU;
+            else if (rank[rootU] < rank[rootV])
+                parent[rootU] = rootV;
+            else {
+                parent[rootV] = rootU;
+                rank[rootU]++;
+            }
+        }
+    }
+};
+
+// Kruskal's Algorithm to find MST
+void kruskal(int n, vector<Edge>& edges) {
+    DisjointSet ds(n);
+    sort(edges.begin(), edges.end(), [](Edge a, Edge b) {
+        return a.weight < b.weight;
+    });
+
+    int mstWeight = 0;
+    vector<Edge> mstEdges;
+
+    for (Edge& edge : edges) {
+        int u = edge.u, v = edge.v;
+        if (ds.find(u) != ds.find(v)) {
+            ds.unionSets(u, v);
+            mstEdges.push_back(edge);
+            mstWeight += edge.weight;
+        }
+    }
+
+    // Output the MST
+    cout << "Minimum Spanning Tree edges:\n";
+    for (Edge& edge : mstEdges) {
+        cout << "Department " << edge.u << " to Department " << edge.v << " with distance " << edge.weight << endl;
+    }
+    cout << "Total weight of MST: " << mstWeight << endl;
+}
+
+int main() {
+    int n = 0, m = 0, u, v, weight, choice;
+    vector<Edge> edges;
+
+    do {
+        cout << "\nMenu:\n";
+        cout << "1. Create Graph\n";
+        cout << "2. Find Minimum Spanning Tree (MST) using Kruskal's Algorithm\n";
+        cout << "3. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1:
+                cout << "Enter the number of departments (nodes): ";
+                cin >> n;
+                cout << "Enter the number of links (edges) between departments: ";
+                cin >> m;
+                edges.clear();  // Clear any existing edges
+
+                cout << "Enter the edges (u, v, weight) where u and v are departments and weight is the distance:\n";
+                for (int i = 0; i < m; i++) {
+                    cin >> u >> v >> weight;
+                    edges.push_back(Edge(u, v, weight));
+                }
+                cout << "Graph created successfully.\n";
+                break;
+
+            case 2:
+                if (edges.empty() || n == 0) {
+                    cout << "Graph is not created yet. Please create a graph first.\n";
+                } else {
+                    kruskal(n, edges);
+                }
+                break;
+
+            case 3:
+                cout << "Exiting...\n";
+                break;
+
+            default:
+                cout << "Invalid choice! Try again.\n";
+        }
+    } while (choice != 3);
+
+    return 0;
+}

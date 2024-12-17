@@ -1,0 +1,145 @@
+#include <iostream>
+using namespace std;
+
+// Structure for a node in a threaded binary tree
+struct ThreadedNode {
+    int data;
+    ThreadedNode *left, *right;
+    bool isLeftThread, isRightThread;
+
+    ThreadedNode(int val) {
+        data = val;
+        left = right = nullptr;
+        isLeftThread = isRightThread = true;
+    }
+};
+
+// Class for the Threaded Binary Tree
+class TBT {
+private:
+    ThreadedNode* root;
+
+public:
+    TBT() {
+        root = nullptr;
+    }
+
+    // Function to insert a node in the tree
+    void insert(int value) {
+        if (root == nullptr) {
+            root = new ThreadedNode(value);
+            return;
+        }
+        insertNode(root, value);
+    }
+
+    // Helper function for insertion
+    void insertNode(ThreadedNode* node, int value) {
+        if (value < node->data) {
+            if (!node->isLeftThread) {
+                insertNode(node->left, value);
+            } else {
+                ThreadedNode* newNode = new ThreadedNode(value);
+                newNode->left = node->left;
+                newNode->right = node;
+                node->left = newNode;
+                node->isLeftThread = false;
+            }
+        } else if (value > node->data) {
+            if (!node->isRightThread) {
+                insertNode(node->right, value);
+            } else {
+                ThreadedNode* newNode = new ThreadedNode(value);
+                newNode->right = node->right;
+                newNode->left = node;
+                node->right = newNode;
+                node->isRightThread = false;
+            }
+        }
+    }
+
+    // In-order traversal of Threaded Binary Tree
+    void inorderTraversal() {
+        ThreadedNode* current = leftMost(root);
+        while (current != nullptr) {
+            cout << current->data << " ";
+            if (current->isRightThread) {
+                current = current->right;
+            } else {
+                current = leftMost(current->right);
+            }
+        }
+        cout << endl;
+    }
+
+    // Pre-order traversal of Threaded Binary Tree
+    void preorderTraversal() {
+        ThreadedNode* current = root;
+        while (current != nullptr) {
+            cout << current->data << " ";
+            if (!current->isLeftThread) {
+                current = current->left;
+            } else if (!current->isRightThread) {
+                current = current->right;
+            } else {
+                while (current != nullptr && current->isRightThread) {
+                    current = current->right;
+                }
+                if (current != nullptr) current = current->right;
+            }
+        }
+        cout << endl;
+    }
+
+    // Helper function to get the leftmost node
+    ThreadedNode* leftMost(ThreadedNode* node) {
+        if (node == nullptr) return nullptr;
+        while (!node->isLeftThread) {
+            node = node->left;
+        }
+        return node;
+    }
+};
+
+// Main function with menu
+int main() {
+    TBT tree;
+    int choice, value;
+
+    do {
+        cout << "\nMenu:\n";
+        cout << "1. Insert Node\n";
+        cout << "2. In-order Traversal\n";
+        cout << "3. Pre-order Traversal\n";
+        cout << "4. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1:
+                cout << "Enter value to insert: ";
+                cin >> value;
+                tree.insert(value);
+                break;
+
+            case 2:
+                cout << "In-order Traversal: ";
+                tree.inorderTraversal();
+                break;
+
+            case 3:
+                cout << "Pre-order Traversal: ";
+                tree.preorderTraversal();
+                break;
+
+            case 4:
+                cout << "Exiting...\n";
+                break;
+
+            default:
+                cout << "Invalid choice! Try again.\n";
+        }
+    } while (choice != 4);
+
+    return 0;
+}

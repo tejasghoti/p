@@ -1,0 +1,120 @@
+#include <iostream>
+#include <vector>
+#include <climits>
+#include <queue>
+using namespace std;
+
+class Graph {
+private:
+    int V;  // Number of landmarks
+    vector<vector<int>> adjMatrix;  // Adjacency Matrix to store the graph
+
+public:
+    Graph(int n) {
+        V = n;
+        adjMatrix.resize(V, vector<int>(V, INT_MAX));  // Initialize all distances to INT_MAX
+        for (int i = 0; i < V; i++) {
+            adjMatrix[i][i] = 0;  // Distance from a landmark to itself is 0
+        }
+    }
+
+    // Add edge to the graph (landmark u to landmark v with distance w)
+    void addEdge(int u, int v, int w) {
+        adjMatrix[u][v] = w;
+        adjMatrix[v][u] = w;  // Since the graph is undirected
+    }
+
+    // Dijkstra's Algorithm to find the shortest path from a single source to all destinations
+    void dijkstra(int src) {
+        vector<int> distance(V, INT_MAX);  // Distance from source to all landmarks
+        vector<bool> visited(V, false);    // Keep track of visited landmarks
+
+        distance[src] = 0;  // Distance from the source to itself is 0
+
+        // Priority queue to pick the vertex with the smallest distance
+        priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
+        pq.push({0, src});  // Push the source with a distance of 0
+
+        while (!pq.empty()) {
+            int u = pq.top().second;  // Landmark with the smallest distance
+            pq.pop();
+
+            if (visited[u]) continue;  // Skip if the landmark is already processed
+            visited[u] = true;
+
+            // Update the distance for the adjacent landmarks
+            for (int v = 0; v < V; v++) {
+                if (!visited[v] && adjMatrix[u][v] != INT_MAX && distance[u] + adjMatrix[u][v] < distance[v]) {
+                    distance[v] = distance[u] + adjMatrix[u][v];
+                    pq.push({distance[v], v});
+                }
+            }
+        }
+
+        // Print the shortest distances from the source
+        cout << "Shortest distances from landmark " << src << ":\n";
+        for (int i = 0; i < V; i++) {
+            if (distance[i] == INT_MAX) {
+                cout << "Landmark " << i << " is not reachable from the source.\n";
+            } else {
+                cout << "Landmark " << i << ": " << distance[i] << " units\n";
+            }
+        }
+    }
+};
+
+int main() {
+    Graph* g = nullptr;  // Pointer to the Graph object
+    int n = 0, m, u, v, w, src, choice;
+
+    do {
+        cout << "\nMenu:\n";
+        cout << "1. Create Graph\n";
+        cout << "2. Find Shortest Path using Dijkstra's Algorithm\n";
+        cout << "3. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1:
+                cout << "Enter the number of landmarks (nodes): ";
+                cin >> n;
+                delete g;  // Clean up any previously created graph
+                g = new Graph(n);
+                cout << "Enter the number of roads (edges) between landmarks: ";
+                cin >> m;
+
+                cout << "Enter the edges (u, v, weight) where u and v are landmarks and weight is the distance:\n";
+                for (int i = 0; i < m; i++) {
+                    cin >> u >> v >> w;
+                    g->addEdge(u, v, w);
+                }
+                break;
+
+            case 2:
+                if (g == nullptr || n == 0) {
+                    cout << "Graph has not been created yet! Please create the graph first.\n";
+                } else {
+                    cout << "Enter the source landmark: ";
+                    cin >> src;
+                    if (src < 0 || src >= n) {
+                        cout << "Invalid source landmark. Please enter a valid landmark number (0 to " << n - 1 << ").\n";
+                    } else {
+                        cout << "Finding shortest path from landmark " << src << " using Dijkstra's Algorithm...\n";
+                        g->dijkstra(src);
+                    }
+                }
+                break;
+
+            case 3:
+                cout << "Exiting...\n";
+                break;
+
+            default:
+                cout << "Invalid choice! Try again.\n";
+        }
+    } while (choice != 3);
+
+    delete g;  // Clean up dynamically allocated memory
+    return 0;
+}

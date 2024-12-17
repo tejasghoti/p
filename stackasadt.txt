@@ -1,0 +1,207 @@
+#include <iostream>
+#include <cstring>
+#include <cctype>
+#include <cmath>
+#include <algorithm> // For reverse
+using namespace std;
+
+// Node structure for singly linked list
+struct Node {
+    int data;
+    Node* next;
+};
+
+// Stack class implemented using singly linked list
+class Stack {
+private:
+    Node* top;
+
+public:
+    Stack() : top(nullptr) {}
+
+    // Push element onto the stack
+    void push(int value) {
+        Node* newNode = new Node();
+        newNode->data = value;
+        newNode->next = top;
+        top = newNode;
+    }
+
+    // Pop element from the stack
+    int pop() {
+        if (isEmpty()) {
+            cout << "Stack underflow!" << endl;
+            return 0;
+        }
+        Node* temp = top;
+        top = top->next;
+        int value = temp->data;
+        delete temp;
+        return value;
+    }
+
+    // Peek the top element of the stack
+    int peek() {
+        if (isEmpty()) {
+            cout << "Stack is empty!" << endl;
+            return 0;
+        }
+        return top->data;
+    }
+
+    // Check if the stack is empty
+    bool isEmpty() {
+        return top == nullptr;
+    }
+
+    // Destructor to free the stack
+    ~Stack() {
+        while (!isEmpty()) {
+            pop();
+        }
+    }
+};
+
+// Function to check precedence of operators
+int precedence(char op) {
+    if (op == '+' || op == '-') return 1;
+    if (op == '*' || op == '/') return 2;
+    return 0;
+}
+
+// Function to perform arithmetic operations
+int applyOp(int a, int b, char op) {
+    switch (op) {
+        case '+': return a + b;
+        case '-': return a - b;
+        case '*': return a * b;
+        case '/': return b == 0 ? 0 : a / b; // Avoid division by zero
+        default: return 0;
+    }
+}
+
+// Function to convert infix expression to postfix
+string infixToPostfix(string infix) {
+    Stack s;
+    string postfix = "";
+    for (char c : infix) {
+        if (isalnum(c)) {
+            postfix += c;
+        } else if (c == '(') {
+            s.push(c);
+        } else if (c == ')') {
+            while (!s.isEmpty() && s.peek() != '(') {
+                postfix += (char)s.pop();
+            }
+            if (!s.isEmpty()) s.pop(); // Remove '('
+        } else {
+            while (!s.isEmpty() && precedence((char)s.peek()) >= precedence(c)) {
+                postfix += (char)s.pop();
+            }
+            s.push(c);
+        }
+    }
+    while (!s.isEmpty()) {
+        postfix += (char)s.pop();
+    }
+    return postfix;
+}
+
+// Function to convert infix expression to prefix
+string infixToPrefix(string infix) {
+    reverse(infix.begin(), infix.end());
+    for (char& c : infix) {
+        if (c == '(') c = ')';
+        else if (c == ')') c = '(';
+    }
+    string postfix = infixToPostfix(infix);
+    reverse(postfix.begin(), postfix.end());
+    return postfix;
+}
+
+// Function to evaluate a postfix expression
+int evaluatePostfix(string postfix) {
+    Stack s;
+    for (char c : postfix) {
+        if (isdigit(c)) {
+            s.push(c - '0'); // Convert char to integer
+        } else {
+            int val2 = s.pop();
+            int val1 = s.pop();
+            s.push(applyOp(val1, val2, c));
+        }
+    }
+    return s.pop();
+}
+
+// Function to evaluate a prefix expression
+int evaluatePrefix(string prefix) {
+    Stack s;
+    reverse(prefix.begin(), prefix.end());
+    for (char c : prefix) {
+        if (isdigit(c)) {
+            s.push(c - '0'); // Convert char to integer
+        } else {
+            int val1 = s.pop();
+            int val2 = s.pop();
+            s.push(applyOp(val1, val2, c));
+        }
+    }
+    return s.pop();
+}
+
+int main() {
+    int choice;
+    string infix, postfix, prefix;
+
+    cout << "Stack-based Expression Converter and Evaluator\n";
+
+    do {
+        cout << "\nMenu:\n";
+        cout << "1. Convert Infix to Postfix\n";
+        cout << "2. Convert Infix to Prefix\n";
+        cout << "3. Evaluate Postfix Expression\n";
+        cout << "4. Evaluate Prefix Expression\n";
+        cout << "5. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1:
+                cout << "Enter infix expression: ";
+                cin >> infix;
+                postfix = infixToPostfix(infix);
+                cout << "Postfix Expression: " << postfix << endl;
+                break;
+
+            case 2:
+                cout << "Enter infix expression: ";
+                cin >> infix;
+                prefix = infixToPrefix(infix);
+                cout << "Prefix Expression: " << prefix << endl;
+                break;
+
+            case 3:
+                cout << "Enter postfix expression: ";
+                cin >> postfix;
+                cout << "Postfix Evaluation Result: " << evaluatePostfix(postfix) << endl;
+                break;
+
+            case 4:
+                cout << "Enter prefix expression: ";
+                cin >> prefix;
+                cout << "Prefix Evaluation Result: " << evaluatePrefix(prefix) << endl;
+                break;
+
+            case 5:
+                cout << "Exiting the program...\n";
+                break;
+
+            default:
+                cout << "Invalid choice! Try again.\n";
+                break;
+        }
+    } while (choice != 5);
+
+    return 0;
+}

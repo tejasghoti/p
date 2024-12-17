@@ -1,0 +1,128 @@
+#include <iostream>
+#include <vector>
+#include <climits> // For INT_MAX
+using namespace std;
+
+class Graph {
+private:
+    int V;  // Number of departments
+    vector<vector<int>> adjMatrix;  // Adjacency Matrix to store the graph
+
+public:
+    Graph(int n) {
+        V = n;
+        adjMatrix.resize(V, vector<int>(V, INT_MAX));  // Initialize all distances to INT_MAX
+        for (int i = 0; i < V; i++) {
+            adjMatrix[i][i] = 0;  // Distance from a department to itself is 0
+        }
+    }
+
+    // Add edge to the graph (department u to department v with distance w)
+    void addEdge(int u, int v, int w) {
+        adjMatrix[u][v] = w;
+        adjMatrix[v][u] = w;  // Since the graph is undirected
+    }
+
+    // Prim's Algorithm to find the MST
+    void primMST() {
+        vector<int> key(V, INT_MAX);  // Key values to pick the minimum weight edge
+        vector<bool> inMST(V, false); // To keep track of departments included in MST
+        vector<int> parent(V, -1);    // Array to store constructed MST
+
+        key[0] = 0;  // Start with the first department (node 0)
+        parent[0] = -1;  // First node is the root of MST
+
+        for (int count = 0; count < V - 1; count++) {
+            // Find the department with the minimum key value
+            int u = minKey(key, inMST);
+
+            inMST[u] = true;  // Include this department in MST
+
+            // Update the key and parent values of the adjacent departments
+            for (int v = 0; v < V; v++) {
+                if (adjMatrix[u][v] != INT_MAX && !inMST[v] && adjMatrix[u][v] < key[v]) {
+                    key[v] = adjMatrix[u][v];
+                    parent[v] = u;
+                }
+            }
+        }
+
+        // Print the MST
+        printMST(parent);
+    }
+
+    // Function to find the department with the minimum key value
+    int minKey(vector<int>& key, vector<bool>& inMST) {
+        int min = INT_MAX, min_index = -1;
+        for (int v = 0; v < V; v++) {
+            if (!inMST[v] && key[v] < min) {
+                min = key[v];
+                min_index = v;
+            }
+        }
+        return min_index;
+    }
+
+    // Function to print the constructed MST
+    void printMST(vector<int>& parent) {
+        cout << "Minimum Spanning Tree (MST) edges and distances:\n";
+        int totalWeight = 0;
+        for (int i = 1; i < V; i++) {
+            cout << "Department " << parent[i] << " - Department " << i
+                 << " with distance " << adjMatrix[i][parent[i]] << endl;
+            totalWeight += adjMatrix[i][parent[i]];
+        }
+        cout << "Total weight of MST: " << totalWeight << endl;
+    }
+};
+
+int main() {
+    int n = 0, m, u, v, w, choice;
+    Graph* g = nullptr;  // Pointer to Graph object, initialized later
+
+    do {
+        cout << "\nMenu:\n";
+        cout << "1. Create Graph\n";
+        cout << "2. Find Minimum Spanning Tree (MST) using Prim's Algorithm\n";
+        cout << "3. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1:
+                if (g) delete g;  // Free previously created graph if it exists
+                cout << "Enter the number of departments (nodes): ";
+                cin >> n;
+                g = new Graph(n);
+                cout << "Enter the number of links (edges) between departments: ";
+                cin >> m;
+
+                cout << "Enter the edges (u, v, weight) where u and v are departments and weight is the distance:\n";
+                for (int i = 0; i < m; i++) {
+                    cin >> u >> v >> w;
+                    g->addEdge(u, v, w);
+                }
+                cout << "Graph created successfully!\n";
+                break;
+
+            case 2:
+                if (g) {
+                    cout << "Finding Minimum Spanning Tree (MST) using Prim's Algorithm...\n";
+                    g->primMST();
+                } else {
+                    cout << "Graph not created yet! Please create a graph first.\n";
+                }
+                break;
+
+            case 3:
+                cout << "Exiting...\n";
+                break;
+
+            default:
+                cout << "Invalid choice! Try again.\n";
+        }
+    } while (choice != 3);
+
+    if (g) delete g;  // Clean up dynamically allocated memory
+    return 0;
+}

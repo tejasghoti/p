@@ -1,0 +1,242 @@
+#include <iostream>
+#include <cctype>
+#include <string>
+#include <cmath>
+#include <stack>
+using namespace std;
+
+// Node structure for the Expression Tree
+struct TreeNode {
+    char data;
+    TreeNode* left;
+    TreeNode* right;
+    TreeNode(char value) : data(value), left(nullptr), right(nullptr) {}
+};
+
+// Function to delete an Expression Tree
+void deleteTree(TreeNode* root) {
+    if (root) {
+        deleteTree(root->left);
+        deleteTree(root->right);
+        delete root;
+    }
+}
+
+// Function to construct an Expression Tree from postfix expression
+TreeNode* constructTreeFromPostfix(const string& postfix) {
+    stack<TreeNode*> treeStack;
+    for (char c : postfix) {
+        if (isalnum(c)) {
+            treeStack.push(new TreeNode(c));
+        } else {
+            if (treeStack.size() < 2) {
+                cout << "Invalid postfix expression.\n";
+                return nullptr;
+            }
+            TreeNode* node = new TreeNode(c);
+            node->right = treeStack.top(); treeStack.pop();
+            node->left = treeStack.top(); treeStack.pop();
+            treeStack.push(node);
+        }
+    }
+    if (treeStack.size() != 1) {
+        cout << "Invalid postfix expression.\n";
+        return nullptr;
+    }
+    return treeStack.top();
+}
+
+// Function to construct an Expression Tree from prefix expression
+TreeNode* constructTreeFromPrefix(const string& prefix) {
+    stack<TreeNode*> treeStack;
+    for (auto it = prefix.rbegin(); it != prefix.rend(); ++it) {
+        char c = *it;
+        if (isalnum(c)) {
+            treeStack.push(new TreeNode(c));
+        } else {
+            if (treeStack.size() < 2) {
+                cout << "Invalid prefix expression.\n";
+                return nullptr;
+            }
+            TreeNode* node = new TreeNode(c);
+            node->left = treeStack.top(); treeStack.pop();
+            node->right = treeStack.top(); treeStack.pop();
+            treeStack.push(node);
+        }
+    }
+    if (treeStack.size() != 1) {
+        cout << "Invalid prefix expression.\n";
+        return nullptr;
+    }
+    return treeStack.top();
+}
+
+// Recursive traversal functions
+void inorderRecursive(TreeNode* root) {
+    if (root) {
+        inorderRecursive(root->left);
+        cout << root->data << " ";
+        inorderRecursive(root->right);
+    }
+}
+
+void preorderRecursive(TreeNode* root) {
+    if (root) {
+        cout << root->data << " ";
+        preorderRecursive(root->left);
+        preorderRecursive(root->right);
+    }
+}
+
+void postorderRecursive(TreeNode* root) {
+    if (root) {
+        postorderRecursive(root->left);
+        postorderRecursive(root->right);
+        cout << root->data << " ";
+    }
+}
+
+// Non-recursive traversal functions
+void inorderNonRecursive(TreeNode* root) {
+    stack<TreeNode*> s;
+    TreeNode* current = root;
+    while (current || !s.empty()) {
+        while (current) {
+            s.push(current);
+            current = current->left;
+        }
+        current = s.top(); s.pop();
+        cout << current->data << " ";
+        current = current->right;
+    }
+}
+
+void preorderNonRecursive(TreeNode* root) {
+    if (!root) return;
+    stack<TreeNode*> s;
+    s.push(root);
+    while (!s.empty()) {
+        TreeNode* current = s.top(); s.pop();
+        cout << current->data << " ";
+        if (current->right) s.push(current->right);
+        if (current->left) s.push(current->left);
+    }
+}
+
+void postorderNonRecursive(TreeNode* root) {
+    if (!root) return;
+    stack<TreeNode*> s1, s2;
+    s1.push(root);
+    while (!s1.empty()) {
+        TreeNode* current = s1.top(); s1.pop();
+        s2.push(current);
+        if (current->left) s1.push(current->left);
+        if (current->right) s1.push(current->right);
+    }
+    while (!s2.empty()) {
+        cout << s2.top()->data << " ";
+        s2.pop();
+    }
+}
+
+int main() {
+    TreeNode* tree = nullptr;
+    int choice;
+    do {
+        cout << "\nMenu:" << endl;
+        cout << "1. Construct tree from postfix expression" << endl;
+        cout << "2. Construct tree from prefix expression" << endl;
+        cout << "3. In-order Recursive Traversal" << endl;
+        cout << "4. Pre-order Recursive Traversal" << endl;
+        cout << "5. Post-order Recursive Traversal" << endl;
+        cout << "6. In-order Non-Recursive Traversal" << endl;
+        cout << "7. Pre-order Non-Recursive Traversal" << endl;
+        cout << "8. Post-order Non-Recursive Traversal" << endl;
+        cout << "9. Exit" << endl;
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+        case 1: {
+            string postfix;
+            cout << "Enter postfix expression: ";
+            cin >> postfix;
+            deleteTree(tree);  // Clear any existing tree
+            tree = constructTreeFromPostfix(postfix);
+            if (tree) cout << "Tree constructed from postfix expression." << endl;
+            break;
+        }
+        case 2: {
+            string prefix;
+            cout << "Enter prefix expression: ";
+            cin >> prefix;
+            deleteTree(tree);  // Clear any existing tree
+            tree = constructTreeFromPrefix(prefix);
+            if (tree) cout << "Tree constructed from prefix expression." << endl;
+            break;
+        }
+        case 3:
+            if (tree) {
+                cout << "In-order Recursive Traversal: ";
+                inorderRecursive(tree);
+                cout << endl;
+            } else {
+                cout << "Tree is not constructed." << endl;
+            }
+            break;
+        case 4:
+            if (tree) {
+                cout << "Pre-order Recursive Traversal: ";
+                preorderRecursive(tree);
+                cout << endl;
+            } else {
+                cout << "Tree is not constructed." << endl;
+            }
+            break;
+        case 5:
+            if (tree) {
+                cout << "Post-order Recursive Traversal: ";
+                postorderRecursive(tree);
+                cout << endl;
+            } else {
+                cout << "Tree is not constructed." << endl;
+            }
+            break;
+        case 6:
+            if (tree) {
+                cout << "In-order Non-Recursive Traversal: ";
+                inorderNonRecursive(tree);
+                cout << endl;
+            } else {
+                cout << "Tree is not constructed." << endl;
+            }
+            break;
+        case 7:
+            if (tree) {
+                cout << "Pre-order Non-Recursive Traversal: ";
+                preorderNonRecursive(tree);
+                cout << endl;
+            } else {
+                cout << "Tree is not constructed." << endl;
+            }
+            break;
+        case 8:
+            if (tree) {
+                cout << "Post-order Non-Recursive Traversal: ";
+                postorderNonRecursive(tree);
+                cout << endl;
+            } else {
+                cout << "Tree is not constructed." << endl;
+            }
+            break;
+        case 9:
+            cout << "Exiting program." << endl;
+            deleteTree(tree);
+            break;
+        default:
+            cout << "Invalid choice. Please try again." << endl;
+        }
+    } while (choice != 9);
+
+    return 0;
+}

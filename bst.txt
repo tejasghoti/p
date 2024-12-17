@@ -1,0 +1,312 @@
+#include <iostream>
+#include <queue>
+#include <algorithm>
+using namespace std;
+
+// Structure for a node in the Binary Search Tree (BST)
+struct Node {
+    int data;
+    Node* left;
+    Node* right;
+
+    Node(int val) : data(val), left(nullptr), right(nullptr) {}
+};
+
+// Binary Search Tree class
+class BST {
+private:
+    Node* root;
+
+    // Helper function for insertion
+    Node* insert(Node* root, int data) {
+        if (root == nullptr) {
+            return new Node(data);
+        }
+
+        if (data < root->data) {
+            root->left = insert(root->left, data);
+        }
+        else if (data > root->data) {
+            root->right = insert(root->right, data);
+        }
+        return root; // Return the (unchanged) root pointer
+    }
+
+    // Helper function for deleting a node
+    Node* deleteNode(Node* root, int data) {
+        if (root == nullptr) return root;
+
+        if (data < root->data) {
+            root->left = deleteNode(root->left, data);
+        }
+        else if (data > root->data) {
+            root->right = deleteNode(root->right, data);
+        }
+        else {
+            // Node to be deleted found
+            if (root->left == nullptr) {
+                Node* temp = root->right;
+                delete root;
+                return temp;
+            }
+            else if (root->right == nullptr) {
+                Node* temp = root->left;
+                delete root;
+                return temp;
+            }
+            else {
+                Node* temp = findMin(root->right);
+                root->data = temp->data;
+                root->right = deleteNode(root->right, temp->data);
+            }
+        }
+        return root;
+    }
+
+    // Helper function to find the minimum node
+    Node* findMin(Node* root) {
+        while (root->left != nullptr) {
+            root = root->left;
+        }
+        return root;
+    }
+
+    // Helper function for search
+    bool search(Node* root, int data) {
+        if (root == nullptr) return false;
+        if (root->data == data) return true;
+        if (data < root->data) return search(root->left, data);
+        return search(root->right, data);
+    }
+
+    // Helper functions for traversals
+    void inorder(Node* root) {
+        if (root != nullptr) {
+            inorder(root->left);
+            cout << root->data << " ";
+            inorder(root->right);
+        }
+    }
+
+    void preorder(Node* root) {
+        if (root != nullptr) {
+            cout << root->data << " ";
+            preorder(root->left);
+            preorder(root->right);
+        }
+    }
+
+    void postorder(Node* root) {
+        if (root != nullptr) {
+            postorder(root->left);
+            postorder(root->right);
+            cout << root->data << " ";
+        }
+    }
+
+    // Helper function to calculate the depth of the tree
+    int depth(Node* root) {
+        if (root == nullptr) return 0;
+        int leftDepth = depth(root->left);
+        int rightDepth = depth(root->right);
+        return max(leftDepth, rightDepth) + 1;
+    }
+
+    // Helper function to create a mirror image of the tree
+    Node* mirror(Node* root) {
+        if (root == nullptr) return nullptr;
+        Node* newRoot = new Node(root->data);
+        newRoot->left = mirror(root->right);
+        newRoot->right = mirror(root->left);
+        return newRoot;
+    }
+
+    // Helper function to display parent nodes with their children
+    void displayParentWithChildren(Node* root) {
+        if (root == nullptr) return;
+        if (root->left != nullptr || root->right != nullptr) {
+            cout << "Parent: " << root->data;
+            if (root->left != nullptr) cout << " Left Child: " << root->left->data;
+            if (root->right != nullptr) cout << " Right Child: " << root->right->data;
+            cout << endl;
+        }
+        displayParentWithChildren(root->left);
+        displayParentWithChildren(root->right);
+    }
+
+    // Helper function to display leaf nodes
+    void displayLeafNodes(Node* root) {
+        if (root == nullptr) return;
+        if (root->left == nullptr && root->right == nullptr) {
+            cout << root->data << " ";
+        }
+        displayLeafNodes(root->left);
+        displayLeafNodes(root->right);
+    }
+
+    // Helper function to display tree level-wise
+    void displayLevelWise(Node* root) {
+        if (root == nullptr) return;
+
+        queue<Node*> q;
+        q.push(root);
+
+        while (!q.empty()) {
+            Node* temp = q.front();
+            q.pop();
+
+            cout << temp->data << " ";
+
+            if (temp->left != nullptr) q.push(temp->left);
+            if (temp->right != nullptr) q.push(temp->right);
+        }
+        cout << endl;
+    }
+
+public:
+    BST() : root(nullptr) {}
+
+    // Public insert function
+    void insert(int data) {
+        root = insert(root, data);
+    }
+
+    // Public delete function
+    void deleteNode(int data) {
+        root = deleteNode(root, data);
+    }
+
+    // Public search function
+    bool search(int data) {
+        return search(root, data);
+    }
+
+    // Public traversal functions
+    void inorder() { inorder(root); cout << endl; }
+    void preorder() { preorder(root); cout << endl; }
+    void postorder() { postorder(root); cout << endl; }
+
+    // Public function to get depth of the tree
+    int depth() { return depth(root); }
+
+    // Public function to create mirror image
+    BST mirror() {
+        BST newTree;
+        newTree.root = mirror(root);
+        return newTree;
+    }
+
+    // Public function to display parent-child nodes
+    void displayParentWithChildren() {
+        displayParentWithChildren(root);
+    }
+
+    // Public function to display leaf nodes
+    void displayLeafNodes() {
+        displayLeafNodes(root);
+        cout << endl;
+    }
+
+    // Public function to display tree level-wise
+    void displayLevelWise() {
+        displayLevelWise(root);
+    }
+};
+
+// Main function with menu
+int main() {
+    BST tree;
+    int choice, data;
+
+    do {
+        cout << "\nMenu:\n";
+        cout << "1. Insert\n";
+        cout << "2. Delete\n";
+        cout << "3. Search\n";
+        cout << "4. Display Inorder Traversal\n";
+        cout << "5. Display Preorder Traversal\n";
+        cout << "6. Display Postorder Traversal\n";
+        cout << "7. Display Depth of Tree\n";
+        cout << "8. Display Mirror Image of Tree\n";
+        cout << "9. Display Parent-Child Nodes\n";
+        cout << "10. Display Leaf Nodes\n";
+        cout << "11. Display Tree Level-wise\n";
+        cout << "12. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1:
+                cout << "Enter data to insert: ";
+                cin >> data;
+                tree.insert(data);
+                break;
+
+            case 2:
+                cout << "Enter data to delete: ";
+                cin >> data;
+                tree.deleteNode(data);
+                break;
+
+            case 3:
+                cout << "Enter data to search: ";
+                cin >> data;
+                if (tree.search(data)) {
+                    cout << "Data found in the tree.\n";
+                } else {
+                    cout << "Data not found in the tree.\n";
+                }
+                break;
+
+            case 4:
+                cout << "Inorder Traversal: ";
+                tree.inorder();
+                break;
+
+            case 5:
+                cout << "Preorder Traversal: ";
+                tree.preorder();
+                break;
+
+            case 6:
+                cout << "Postorder Traversal: ";
+                tree.postorder();
+                break;
+
+            case 7:
+                cout << "Depth of tree: " << tree.depth() << endl;
+                break;
+
+            case 8: {
+                BST mirrorTree = tree.mirror();
+                cout << "Mirror Image (Inorder Traversal): ";
+                mirrorTree.inorder();
+                break;
+            }
+
+            case 9:
+                cout << "Parent-Child Nodes:\n";
+                tree.displayParentWithChildren();
+                break;
+
+            case 10:
+                cout << "Leaf Nodes: ";
+                tree.displayLeafNodes();
+                break;
+
+            case 11:
+                cout << "Tree Level-wise: ";
+                tree.displayLevelWise();
+                break;
+
+            case 12:
+                cout << "Exiting the program...\n";
+                break;
+
+            default:
+                cout << "Invalid choice! Try again.\n";
+        }
+    } while (choice != 12);
+
+    return 0;
+}
